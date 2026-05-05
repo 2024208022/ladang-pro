@@ -1,6 +1,6 @@
 ﻿# 🌿 Ladang Pro
 
-**No Idea**
+**No Idea**ll
 
 Ladang Pro is ummm...IDK
 
