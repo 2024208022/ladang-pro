@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Leaf, ArrowRight, Activity, Globe, Shield, ChevronRight, Plus, Trash2, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // Calculator UI Imports
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -222,7 +222,7 @@ function LandingPage() {
             <Link to="/login" className="nav-pill px-4 py-2 rounded-lg text-sm font-medium text-green-800 hidden sm:block">
               Log Masuk
             </Link>
-            <Link to="/login" className="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1.5">
+            <Link to="/register" className="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-1.5">
               Daftar Percuma
               <ChevronRight className="size-4" />
             </Link>
@@ -520,7 +520,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // EMBEDDED CALCULATOR LOGIC
 // ---------------------------------------------------------
 function QuickCalculator() {
-  const navigate = useNavigate();
   const [entries, setEntries] = useState<FuelEntry[]>([
     { id: crypto.randomUUID(), activity: "Mobile combustion", fuel: "Diesel", amount: 0 },
   ]);
@@ -533,6 +532,10 @@ function QuickCalculator() {
     time: "Flexible",
     labor: "Medium",
   });
+  
+  // New state to hold the calculated result & control the slide animation
+  const [resultData, setResultData] = useState<any>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const update = (id: string, patch: Partial<FuelEntry>) =>
     setEntries((p) => p.map((e) => (e.id === id ? { ...e, ...patch } : e)));
@@ -544,9 +547,19 @@ function QuickCalculator() {
     ]);
 
   const submit = () => {
+    // 1. Calculate the result
     const result = calculate({ entries, region, electricity, constraints: c });
+    
+    // 2. Save it to local memory (will save as "guest" if not logged in)
     saveResult(result);
-    navigate({ to: "/result" });
+    
+    // 3. Trigger the slide down animation by setting the result state
+    setResultData(result);
+    
+    // 4. Smooth scroll to the result box slightly after it begins rendering
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
 
   return (
@@ -712,6 +725,83 @@ function QuickCalculator() {
         >
           <Sparkles className="size-5" /> Calculate & get my plan
         </Button>
+      </div>
+
+      {/* --- SLIDE-DOWN RESULT SECTION --- */}
+      <div 
+        className={`w-full transition-all duration-700 ease-in-out overflow-hidden ${
+          resultData ? "max-h-[3000px] opacity-100 mt-12" : "max-h-0 opacity-0 mt-0"
+        }`}
+      >
+        <div ref={resultRef} className="bg-green-950 rounded-3xl p-8 md:p-10 text-white shadow-2xl relative overflow-hidden">
+          
+          <div className="absolute -right-20 -top-20 opacity-10 pointer-events-none">
+             <Leaf className="w-96 h-96" />
+          </div>
+
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold mb-8 font-display">
+              Keputusan Anda
+            </h2>
+            
+            {resultData && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                {/* Score Card */}
+                <div className="bg-green-900/50 p-6 rounded-2xl border border-green-800">
+                  <p className="text-green-300 text-sm font-medium mb-2">Jumlah Jejak Karbon</p>
+                  <p className="text-5xl font-bold text-white mb-2">
+                    {resultData.totalEmissions.toFixed(0)} <span className="text-xl text-green-400">kg CO₂e</span>
+                  </p>
+                  <p className="text-xs text-green-200/70">
+                    Berdasarkan input Scope 1 & Scope 2 anda.
+                  </p>
+                </div>
+
+                {/* Top Actions List */}
+                <div className="md:col-span-2 bg-white rounded-2xl p-6 text-green-950">
+                  <h3 className="text-lg font-bold mb-4">Tindakan Disyorkan Untuk Anda</h3>
+                  <div className="space-y-4">
+                    {resultData.topActions.map((action: any, index: number) => (
+                      <div key={index} className="flex gap-4 items-start p-4 bg-[#f7f9f4] rounded-xl border border-green-100">
+                        <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-green-900">{action.title}</h4>
+                          <p className="text-sm text-slate-600 mt-1 leading-relaxed">{action.description}</p>
+                          <div className="flex gap-2 mt-3">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-green-200 text-green-800 rounded-md">
+                              Kos: {action.cost}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-green-950 text-green-100 rounded-md">
+                              Impak: {action.impact}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* CTA */}
+            <div className="mt-8 pt-8 border-t border-green-800/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-green-200 text-sm">
+                Simpan data ini untuk pantauan jangka panjang.
+              </p>
+              <Link 
+                to="/register" 
+                className="px-6 py-3 bg-white text-green-900 font-bold rounded-xl hover:bg-green-50 transition-colors"
+              >
+                Daftar Akaun Percuma
+              </Link>
+            </div>
+
+          </div>
+        </div>
       </div>
     </div>
   );

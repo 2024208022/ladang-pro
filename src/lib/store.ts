@@ -1,20 +1,64 @@
-import type { CalcResult } from "./carbon";
+import { CalcResult } from "./carbon";
 
-const KEY = "ladangpro_history_v1";
+// =========================================================
+// IN-MEMORY DATABASE (Wipes completely on page refresh)
+// =========================================================
+let currentUser: { name: string; email: string } | null = null;
+let registeredUsers: Record<string, { name: string; email: string; password: string }> = {}; 
+let historyDb: Record<string, CalcResult[]> = {};
+let prefsDb: Record<string, Record<string, { likes: number; dismisses: number }>> = {};
 
-export function loadHistory(): CalcResult[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]");
-  } catch {
-    return [];
-  }
+// ---------------------------------------------------------
+// 1. AUTHENTICATION (Real Simulation)
+// ---------------------------------------------------------
+
+export function registerNewUser(name: string, email: string, password: string) {
+  // Save user with password
+  registeredUsers[email] = { name, email, password };
+  setCurrentUser(name, email);
 }
 
-export function saveResult(r: CalcResult) {
+export function attemptLogin(email: string, password: string): boolean {
+  const user = registeredUsers[email];
+  
+  // Verify both email exists AND password matches
+  if (user && user.password === password) {
+    setCurrentUser(user.name, user.email);
+    return true; // Login success!
+  }
+  
+  return false; // Login failed!
+}
+
+function setCurrentUser(name: string, email: string) {
+  currentUser = { name, email };
+  if (!historyDb[email]) historyDb[email] = [];
+  if (!prefsDb[email]) prefsDb[email] = {};
+}
+
+export function getCurrentUser(): { name: string; email: string } | null {
+  return currentUser;
+}
+
+export function logout() {
+  currentUser = null;
+}
+
+// ---------------------------------------------------------
+// 2. DATA STORAGE & HISTORY
+// ---------------------------------------------------------
+
+export function loadHistory(): CalcResult[] {
+  if (!currentUser) return [];
+  return historyDb[currentUser.email] || [];
+}
+
+export function saveResult(result: CalcResult) {
+  if (!currentUser) return;
   const all = loadHistory();
-  all.unshift(r);
-  localStorage.setItem(KEY, JSON.stringify(all.slice(0, 50)));
+  const newEntry = { ...result, timestamp: new Date().toISOString() };
+  all.unshift(newEntry);
+  historyDb[currentUser.email] = all.slice(0, 50);
 }
 
 export function getLatest(): CalcResult | null {
@@ -26,26 +70,27 @@ export function getPrevious(): CalcResult | null {
 }
 
 export function clearHistory() {
-  localStorage.removeItem(KEY);
+  if (!currentUser) return;
+  historyDb[currentUser.email] = [];
 }
 
-// Track action interactions to learn user preferences (basic)
-const PREF_KEY = "ladangpro_action_prefs_v1";
+// ---------------------------------------------------------
+// 3. ACTION PREFERENCES
+// ---------------------------------------------------------
+
 export type ActionPref = Record<string, { likes: number; dismisses: number }>;
 
 export function loadPrefs(): ActionPref {
-  if (typeof window === "undefined") return {};
-  try {
-    return JSON.parse(localStorage.getItem(PREF_KEY) ?? "{}");
-  } catch {
-    return {};
-  }
+  if (!currentUser) return {};
+  return prefsDb[currentUser.email] || {};
 }
+
 export function recordPref(title: string, kind: "like" | "dismiss") {
+  if (!currentUser) return;
   const p = loadPrefs();
   const cur = p[title] ?? { likes: 0, dismisses: 0 };
   if (kind === "like") cur.likes++;
   else cur.dismisses++;
   p[title] = cur;
-  localStorage.setItem(PREF_KEY, JSON.stringify(p));
+  prefsDb[currentUser.email] = p;
 }

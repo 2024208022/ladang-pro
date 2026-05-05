@@ -1,30 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Leaf, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { Leaf, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { attemptLogin } from "@/lib/store";
+import { registerNewUser } from "@/lib/store";
 
-export const Route = createFileRoute("/login")({
-  component: LoginPage,
+export const Route = createFileRoute("/register")({
+  component: RegisterPage,
 });
 
-function LoginPage() {
+function RegisterPage() {
   const navigate = useNavigate();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    
-    // Check both email and password
-    const success = attemptLogin(email, password);
-
-    if (success) {
-      navigate({ to: "/dashboard" });
-    } else {
-      setError("E-mel atau kata laluan tidak sah. Sila cuba lagi.");
-    }
+    registerNewUser(name, email, password);
+    navigate({ to: "/dashboard" });
   };
 
   return (
@@ -44,19 +36,24 @@ function LoginPage() {
             <h2 className="font-bold text-xl tracking-tight">Ladang Pro</h2>
           </div>
 
+          <div className="inline-block px-4 py-1.5 rounded-full bg-green-800/50 border border-green-700/50 text-green-300 text-sm font-medium mb-6">
+            <span className="w-2 h-2 rounded-full bg-green-400 inline-block mr-2 animate-pulse"></span>
+            Percuma untuk 30 Hari Pertama
+          </div>
+
           <h1 className="text-5xl font-bold text-white leading-tight mb-8" style={{ fontFamily: "'Fraunces', serif" }}>
-            Selamat kembali ke <br/><span className="text-green-400 italic font-light">papan pemuka</span> anda.
+            Mulakan perjalanan <span className="text-green-400 italic font-light">lestari</span> anda hari ini.
           </h1>
           
           <p className="text-green-100/80 text-lg mb-10 max-w-md leading-relaxed">
-            Teruskan memantau jejak karbon dan urus kelestarian ladang anda hari ini.
+            Daftar dalam masa kurang dari 2 minit dan dapatkan laporan karbon pertama anda secara percuma.
           </p>
 
           <div className="space-y-5">
             {[
-              "Lihat sejarah pengiraan karbon anda",
-              "Dapatkan akses kepada cadangan pintar yang baru",
-              "Kawal selia perbelanjaan operasi ladang"
+              "Analisis karbon automatik tanpa kerumitan teknikal",
+              "Cadangan tindakan dipersonalisisasi untuk ladang anda",
+              "Data selamat disimpan secara lokal di peranti anda"
             ].map((text, i) => (
               <div key={i} className="flex items-center gap-4 text-green-50/90">
                 <CheckCircle2 className="size-6 text-green-400 flex-shrink-0" />
@@ -80,19 +77,23 @@ function LoginPage() {
               <Leaf className="size-7 text-white" />
             </div>
             <h2 className="text-3xl font-bold text-green-950 mb-3" style={{ fontFamily: "'Fraunces', serif" }}>
-              Log Masuk
+              Daftar Akaun Baharu
             </h2>
-            <p className="text-slate-500 text-sm">Masukkan butiran anda untuk meneruskan.</p>
+            <p className="text-slate-500 text-sm">Sertai Ladang Pro untuk mula mengurus kelestarian ladang anda.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            
-            {error && (
-              <div className="p-4 bg-red-50 text-red-700 text-sm font-medium rounded-xl border border-red-100 flex items-start gap-3">
-                <AlertCircle className="size-5 flex-shrink-0 mt-0.5" />
-                <p className="leading-relaxed">{error}</p>
-              </div>
-            )}
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-green-900 mb-2">Nama Penuh</label>
+              <input 
+                type="text" 
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ahmad Emir" 
+                className="w-full h-12 px-4 rounded-xl border border-green-200 bg-[#f7f9f4] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-sm"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-semibold text-green-900 mb-2">Alamat E-mel</label>
@@ -100,45 +101,43 @@ function LoginPage() {
                 type="email" 
                 required
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError(""); 
-                }}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="petani@ladang.com" 
                 className="w-full h-12 px-4 rounded-xl border border-green-200 bg-[#f7f9f4] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-sm"
               />
             </div>
             
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-semibold text-green-900">Kata Laluan</label>
-                <a href="#" className="text-xs text-green-600 font-semibold hover:underline">Lupa Kata Laluan?</a>
-              </div>
+              <label className="block text-sm font-semibold text-green-900 mb-2">Kata Laluan</label>
               <input 
                 type="password" 
                 required
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError(""); 
-                }}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" 
                 className="w-full h-12 px-4 rounded-xl border border-green-200 bg-[#f7f9f4] focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-sm"
               />
             </div>
 
+            <div className="flex items-start gap-3 mt-4 mb-6">
+              <input type="checkbox" required className="mt-1 border-green-300 text-green-600 focus:ring-green-500 rounded" />
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Saya bersetuju dengan <a href="#" className="text-green-600 font-semibold hover:underline">Terma Perkhidmatan</a> dan <a href="#" className="text-green-600 font-semibold hover:underline">Dasar Privasi</a>
+              </p>
+            </div>
+
             <button 
               type="submit" 
-              className="w-full h-12 mt-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition-all shadow-[0_4px_14px_rgba(22,163,74,0.35)] hover:shadow-[0_8px_20px_rgba(22,163,74,0.4)] hover:-translate-y-0.5"
+              className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition-all shadow-[0_4px_14px_rgba(22,163,74,0.35)] hover:shadow-[0_8px_20px_rgba(22,163,74,0.4)] hover:-translate-y-0.5"
             >
-              Log Masuk Papan Pemuka
+              Daftar Percuma
             </button>
           </form>
 
           <div className="mt-8 text-center text-sm font-medium text-slate-500">
-            Belum mempunyai akaun?{" "}
-            <Link to="/register" className="text-green-600 hover:text-green-700 hover:underline">
-              Daftar Sekarang
+            Sudah mempunyai akaun?{" "}
+            <Link to="/login" className="text-green-600 hover:text-green-700 hover:underline">
+              Log Masuk
             </Link>
           </div>
 

@@ -32,12 +32,12 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Ladang Pro — Carbon Decision Support for Farmers" },
       { name: "description", content: "Calculate farm carbon emissions and get the top 3 actions to reduce them." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "author", content: "Rime" },
+      { property: "og:title", content: "Ladang Pro" },
+      { property: "og:description", content: "A project by Rime" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Rime" },
     ],
     links: [
       {
@@ -69,7 +69,7 @@ function RootComponent() {
   const location = useLocation();
 
   // 1. Define which routes should be full-screen (No Sidebar)
-  const fullScreenPaths = ["/", "/calculator", "/result", "/login"];
+  const fullScreenPaths = ["/", "/calculator", "/result", "/login", "/register"];
   const hideSidebar = fullScreenPaths.includes(location.pathname);
 
   // 2. If the user is on a full-screen path, render without the sidebar
