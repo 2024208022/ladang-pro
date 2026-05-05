@@ -73,3 +73,11 @@ Built by **Rime**.
 ## 📝 License
 
 Yes I ChatGPT this, dunno why he put this part but...yeah.
+
+## For Git Push
+
+git add .
+
+git commit -m "write message"
+
+git push
