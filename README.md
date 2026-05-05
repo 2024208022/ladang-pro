@@ -12,7 +12,7 @@ Ladang Pro is ummm...IDK
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech STACKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
 
 *   **Framework:** React 18
 *   **Routing:** [TanStack Router](https://tanstack.com/router/latest)
